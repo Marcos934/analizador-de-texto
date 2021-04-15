@@ -2,7 +2,7 @@
   <div>
     <textarea
       class="textarea is-info textarea is-medium"
-      placeholder="Amo animais"
+      placeholder="Adotei um cachorro e estou super contente"
       v-model="frase"
       maxlength="100"
     ></textarea>
