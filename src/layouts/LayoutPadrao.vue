@@ -49,58 +49,7 @@
   <section class="hero is-small">
     <div class="hero-body">
       <div class="container">
-        <slot>
-          <!-- Componente -->
-          <div class="mb-3">
-            <article class="message is-warning">
-              <div class="message-header">
-                <p>Sobre o sistema</p>
-
-              </div>
-              <div class="message-body">
-                Sistema de reconhecimento de sentimentos, a avaliação da frase é feita pelo
-                 serviço de Inteligência Artificial Azure - <i>text analytics recognition.</i>
-    <br>
-                O recurso de análise de sentimento de análise de texto fornece duas maneiras de detectar 
-                sentimentos positivos e negativos. Retornará rótulos de sentimento (como "negativo", "neutro" e "positivo") 
-                e pontuações de confiança no nível da frase 
-
-              </div>
-            </article>
-          </div>
-
-          <!-- Componente -->
-          <div>
-            <textarea
-              class="textarea is-info"
-              placeholder="Amo animais"
-            ></textarea>
-            <div class="buttons">
-              <button class="button is-link mt-2">Analizar Texto</button>
-            </div>
-            <hr />
-          </div>
-        </slot>
-      </div>
-
-      <!-- Componente -->
-      <div class="mt-5">
-        <div class="has-text-centered">
-          <strong>Técnologias utilizadas</strong>
-          <div>
-            <ul>
-              <li>Vue</li>
-              <li>Bulma Css</li>
-              <li>
-                <a
-                    target="_blank"
-                  href="https://azure.microsoft.com/pt-br/services/cognitive-services/text-analytics/"
-                  >Serviço Congnitivo - Azure</a
-                >
-              </li>
-            </ul>
-          </div>
-        </div>
+        <slot> </slot>
       </div>
     </div>
     <footer class="footer hero is-medium is-link">
