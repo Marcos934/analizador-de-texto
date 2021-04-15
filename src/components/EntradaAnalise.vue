@@ -21,14 +21,34 @@
     class="mt-4 container is-max-desktop"
     v-else-if="resposta == 'analizado'"
   >
-    <p class="title is-2">Resultado: {{ resultado }}</p>
-    <label class="title is-6">Negativo: {{ sentimentos.negativo }}%</label>
+
+
+ <article class="message is-danger mt-2"  v-if="aviso">
+      <div class="message-header">
+        <p>Analise IA</p>
+        <button class="delete" @click="fecharAviso" aria-label="delete"></button>
+      </div>
+      <div class="message-body">
+        Lembre-se que a análise está sendo feita por "robôs", ou melhor, algoritmos de IA... Por tanto não leve em consideração
+        caso erre a análise, lembre-se que o computador ainda não têm sentimentos.
+      </div>
+    </article>
+
+
+    <p class="title is-2 has-text-centered">{{ resultado }}</p>
+
+    <label class="title is-6"
+      >Positivo: {{ (sentimentos.positivo * 100).toFixed(2) }}%
+    </label>
     <progress
-      class="progress is-medium is-danger"
-      :value="sentimentos.negativo"
+      class="progress is-medium is-success"
+      :value="sentimentos.positivo"
       max="1"
     ></progress>
-    <label class="title is-6">Neutro: {{ sentimentos.neutro }}% </label>
+
+    <label class="title is-6"
+      >Neutro: {{ (sentimentos.neutro * 100).toFixed(2) }}%
+    </label>
     <progress
       class="progress is-medium is-warning"
       :value="sentimentos.neutro"
@@ -37,14 +57,19 @@
       80%
     </progress>
 
-    <label class="title is-6">Positivo: {{ sentimentos.positivo }}% </label>
-    <progress
-      class="progress is-medium is-success"
-      :value="sentimentos.positivo"
-      max="1"
+    <label class="title is-6"
+      >Negativo: {{ (sentimentos.negativo * 100).toFixed(2) }}%</label
     >
-      1
-    </progress>
+    <progress
+      class="progress is-medium is-danger"
+      :value="sentimentos.negativo"
+      max="1"
+    ></progress>
+
+  <div class="mt-2 title is-6 has-text-start">
+      Idioma identificado: <strong>{{idioma}}</strong>
+  </div>
+  
   </div>
 
   <hr />
@@ -54,7 +79,9 @@ export default {
   data() {
     return {
       resposta: null,
+      aviso: true,
       frase: "",
+      idioma: "",
       resultado: null,
       sentimentos: {
         positivo: 0,
@@ -65,12 +92,13 @@ export default {
   },
   methods: {
     async Analize() {
+      this.dispResposta("");
       if (this.verificaTexto() == false) {
         return 0;
       }
-
+    
       this.dispResposta("enviado");
-
+        this.aviso = true
       const {
         TextAnalyticsClient,
         AzureKeyCredential,
@@ -83,47 +111,51 @@ export default {
         new AzureKeyCredential(key)
       );
 
-      async function sentimentAnalysis(client) {
-        const sentimentInput = [
-          "Olá Mundo. Este é um texto de entrada que eu adoro",
-        ];
-        const sentimentResult = await client.analyzeSentiment(sentimentInput);
-
-        sentimentResult.forEach((document) => {
-          console.log(`ID: ${document.id}`);
-          console.log(`\tDocument Sentiment: ${document.sentiment}`);
-          console.log(`\tSentences Sentiment(${document.sentences.length}):`);
-          document.sentences.forEach((sentence) => {
-            console.log(`\t\tSentence sentiment: ${sentence.sentiment}`);
-            console.log(`\t\tSentences Scores:`);
-            console.log(
-              `\t\tPositive: ${sentence.confidenceScores.positive.toFixed(
-                2
-              )} \tNegative: ${sentence.confidenceScores.negative.toFixed(
-                2
-              )} \tNeutral: ${sentence.confidenceScores.neutral.toFixed(2)}`
-            );
-          });
-        });
-
-        //   async function languageDetection(client) {
-
-        //     const languageInputArray = [
-        //       "Estou feliz hoje"
-
-        //     ];
-        //     const languageResult = await client.detectLanguage(languageInputArray);
-
-        //     languageResult.forEach(document => {
-        //         console.log(`\tPrimary Language ${document.primaryLanguage.name}`)
-        //     });
-        // }
-        // languageDetection(textAnalyticsClient);
-      }
-
-      await sentimentAnalysis(textAnalyticsClient);
+       
+      await this.analiseDeSentimento(textAnalyticsClient);
       this.dispResposta("analizado");
     },
+
+    async analiseDeSentimento(client) {
+      const sentimentInput = [this.frase.replace(".", "")];
+      const sentimentResult = await client.analyzeSentiment(sentimentInput);
+
+
+         const languageResult = await client.detectLanguage(sentimentInput);
+
+          languageResult.forEach(document => {
+              this.idioma = document.primaryLanguage.name
+          });
+
+
+      sentimentResult.forEach((document) => {
+        console.log(`\tDocument Sentiment: ${document.sentiment}`);
+        this.trataResultado(document.sentiment);
+        document.sentences.forEach((sentence) => {
+          console.log(`\t\tSentences Scores:`);
+
+          this.sentimentos.positivo = sentence.confidenceScores.positive.toFixed(
+            2
+          );
+          this.sentimentos.neutro = sentence.confidenceScores.neutral.toFixed(
+            2
+          );
+          this.sentimentos.negativo = sentence.confidenceScores.negative.toFixed(
+            2
+          );
+          
+
+          console.log(
+            `\t\tPositive: ${sentence.confidenceScores.positive.toFixed(2)} 
+            \tNegative: ${sentence.confidenceScores.negative.toFixed(2)} 
+            \tNeutral: ${sentence.confidenceScores.neutral.toFixed(2)}`
+          );
+        });
+      });
+
+       
+    },
+
     dispResposta(valor) {
       this.resposta = valor;
       console.log(valor);
@@ -139,8 +171,22 @@ export default {
         return true;
       }
     },
-    teste() {
-      return alert();
+    trataResultado(valor) {
+      this.resultado;
+      switch (valor) {
+        case "positive":
+          this.resultado = "Sentimento Positivo";
+          break;
+        case "negative":
+          this.resultado = "Sentimento Negativo";
+          break;
+        case "neutral":
+          this.resultado = "Sentimento Neutro";
+          break;
+      }
+    },
+    fecharAviso() {
+      return this.aviso = false;
     },
   },
 };
